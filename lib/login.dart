@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'map.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -19,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('ok'))
       );
-      // Navigator.pushReplacement(context, MaterialPageRoute(builder: builder));
+      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MapPage()));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Nieprawidłowe dane logowania'))

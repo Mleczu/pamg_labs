@@ -17,10 +17,7 @@ class _LoginPageState extends State<LoginPage> {
     String password = passwordController.text;
 
     if (username == 'admin' && password == '1234') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ok'))
-      );
-      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MapPage()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MapPage()));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Nieprawidłowe dane logowania'))

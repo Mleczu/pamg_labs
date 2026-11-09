@@ -135,6 +135,170 @@ class _MapPageState extends State<MapPage> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Trasa zapisana do pliku\n${file.path}')));
   }
-}
 
-// sprawozdanie do momentu strony z logowaniem: instalacja srodowiska, przerobka main i stworzenie login.dart
+  Future<void> exportRoutes() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final files = directory.listSync().whereType<File>().where(
+        (file) => file.path.endsWith('.geojson') && file.path.split(Platform.pathSeparator).last.startsWith('trasa_')
+      ).toList();
+      if (files.isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('Brak zapisanych tras do wyświetlenia lub eksportu')));
+        return;
+      }
+      await SharePlus.instance.share(
+        ShareParams(
+          title: 'Eksport tras',
+          text: 'Zapisane trasy marszu',
+          files: files.map((file) => XFile(file.path)).toList()
+        )
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Błąd eksportu: $e')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('WalkTracker'),
+        actions: [
+          IconButton(
+            icon: Icon(showOrtofoto ? Icons.map : Icons.satellite_alt),
+            tooltip: showOrtofoto ? 'Przełącz na OSM' : 'Przełącz na ortofotomapę',
+            onPressed: () {
+              setState(() {
+                showOrtofoto = !showOrtofoto;
+              });
+            },
+
+          ),
+
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.account_circle),
+            tooltip: 'Menu',
+            onSelected: (value) {
+              if (value == 'logout') {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()), (route) => false
+                );
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout),
+                    SizedBox(width: 10),
+                    Text('Wyloguj')
+                  ]
+                ),
+              )
+            ],
+          ),
+          const SizedBox(width: 5)
+        ],
+      ),
+      body: Stack(
+        children: [
+          FlutterMap(
+            mapController: mapController,
+            options: const MapOptions(
+              initialCenter: LatLng(52.23, 21.05),
+              initialZoom: 12,
+              minZoom: 5,
+              maxZoom: 19,
+            ),
+            children: [
+              if (!showOrtofoto)
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.example.pamg_labs',
+                  maxZoom: 19,
+                ),
+              if (showOrtofoto)
+                TileLayer(
+                  wmsOptions: WMSTileLayerOptions(
+                    baseUrl: 'https://mapy.geoportal.gov.pl/wss/service/PZGIK/ORTO/WMS/StandardResolution',
+                    layers: const ['Raster'],
+                    format: 'image/jpeg',
+                    transparent: false,
+                    version: '1.3.0'
+                  ),
+                  userAgentPackageName: 'com.example.pamg_labs'
+                ),
+              PolylineLayer(polylines: [
+                if (routePoints.length >= 2)
+                  Polyline(
+                    points: routePoints.map((position) => LatLng(position.latitude, position.longitude)).toList(),
+                    strokeWidth: 9
+                  )
+              ]),
+
+              RichAttributionWidget(attributions: [
+                if (!showOrtofoto)
+                  const TextSourceAttribution('OSM contributors'),
+                if (!showOrtofoto)
+                  const TextSourceAttribution('geoportal.gov.pl'),
+              ])
+            ]
+          ),
+          Positioned(
+            right: 15,
+            bottom: 90,
+            child: Column(
+              children: [
+                FloatingActionButton(
+                  heroTag: 'zoom_in',
+                  mini: true,
+                  onPressed: () {
+                    mapController.move(
+                      mapController.camera.center,
+                      mapController.camera.zoom + 1
+                    );
+                  },
+                  child: const Icon(Icons.add)
+                ),
+                const SizedBox(height: 8),
+                FloatingActionButton(
+                  heroTag: 'zoom_out',
+                  mini: true,
+                  onPressed: () {
+                    mapController.move(
+                      mapController.camera.center,
+                      mapController.camera.zoom - 1
+                    );
+                  },
+                  child: const Icon(Icons.remove)
+                )
+              ]
+            )
+          ),
+        ]
+      ),
+      bottomNavigationBar: BottomAppBar(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            IconButton(onPressed: startMeasurement, icon: const Icon(Icons.play_arrow), tooltip: 'Rozpocznij pomiar'),
+            IconButton(onPressed: stopMeasurement, icon: const Icon(Icons.stop), tooltip: 'Zakończ pomiar'),
+            IconButton(onPressed: resetMeasurement, icon: const Icon(Icons.refresh), tooltip: 'Resetuj pomiar'),
+            IconButton(onPressed: saveMeasurement, icon: const Icon(Icons.save), tooltip: 'Zapisz pomiar'),
+            IconButton(onPressed: () {
+              // Navigator.push(context, MaterialPageRoute(builder: (context) => const ResultsPage()))
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Kliknieto Wyniki'))
+              );
+            }, icon: const Icon(Icons.analytics), tooltip: 'Wyniki'),
+            
+          ]
+        )
+      ),
+    );
+  }
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'results.dart';
 import 'login.dart';
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
@@ -290,11 +291,16 @@ class _MapPageState extends State<MapPage> {
             IconButton(onPressed: resetMeasurement, icon: const Icon(Icons.refresh), tooltip: 'Resetuj pomiar'),
             IconButton(onPressed: saveMeasurement, icon: const Icon(Icons.save), tooltip: 'Zapisz pomiar'),
             IconButton(onPressed: () {
-              // Navigator.push(context, MaterialPageRoute(builder: (context) => const ResultsPage()))
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Kliknieto Wyniki'))
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const ResultsPage()));
+              // ScaffoldMessenger.of(context).showSnackBar(
+              //   const SnackBar(content: Text('Kliknieto Wyniki'))
+              // );
             }, icon: const Icon(Icons.analytics), tooltip: 'Wyniki'),
+            IconButton(
+              icon: const Icon(Icons.file_download),
+              tooltip: 'Eksportuj',
+              onPressed: exportRoutes
+            )
             
           ]
         )

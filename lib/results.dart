@@ -16,7 +16,7 @@ class ResultsPage extends StatefulWidget {
 
 class _ResultsPageState extends State<ResultsPage> {
   List<File> routeFiles = [];
-  bool isloading = true;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -32,7 +32,7 @@ class _ResultsPageState extends State<ResultsPage> {
         .where((file) {
           final name = file.path.split(Platform.pathSeparator).last;
           return name.toLowerCase().endsWith('.geojson') &&
-              name.startsWith('trasa.');
+              name.startsWith('trasa_');
         })
         .toList();
 
@@ -44,7 +44,7 @@ class _ResultsPageState extends State<ResultsPage> {
 
     setState(() {
       routeFiles = files;
-      isloading = false;
+      isLoading = false;
     });
   }
 
@@ -75,7 +75,7 @@ class _ResultsPageState extends State<ResultsPage> {
           },
         ),
       ),
-      body: isloading
+      body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : routeFiles.isEmpty
               ? const Center(
@@ -128,6 +128,12 @@ class _ResultsPageState extends State<ResultsPage> {
                         },
                       ),
                       onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => RouteDetailsPage(filePath: file.path),
+                          ),
+                        );  
                       },
                     );
                   },
